@@ -171,13 +171,19 @@ See the `examples/` directory:
 
 Open `tests/test.html` in a browser. All tests run client-side with a mocked fetch — no API key needed.
 
-## Security Note
+## API Key Handling
 
-Your API key is visible in the page source. This is fine for:
+Keys are resolved in this order: `localStorage` > `<meta>` tag > `window.aiConfig` > prompt.
 
-- Local development
-- Prototyping
-- Internal tools
+If no key is found, the user is prompted to enter one. It's saved to `localStorage` so they only need to do it once per domain.
+
+```javascript
+// Set a key programmatically
+localStorage.setItem("ai:key", "sk-or-...");
+
+// Clear it
+localStorage.removeItem("ai:key");
+```
 
 For production, proxy the requests through your own backend to keep the key secret.
 

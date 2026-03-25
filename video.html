@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="ai:key" content="YOUR_OPENROUTER_KEY">
   <meta name="ai:model" content="openai/gpt-oss-120b:groq">
   <title>ai.js demo</title>
   <style>
@@ -253,7 +252,11 @@
       editor.classList.add("hidden");
       split.classList.add("visible");
 
-      const key = document.querySelector('meta[name="ai:key"]').content;
+      let key = localStorage.getItem("ai:key");
+      if (!key) {
+        key = prompt("Enter your OpenRouter API key:");
+        if (key) localStorage.setItem("ai:key", key);
+      }
       const model = document.querySelector('meta[name="ai:model"]').content;
 
       const prompt = `Build a single landing page for an enterprise AI startup called "Nexus AI". Use only inline styles, no external CSS or classes. Include: hero with gradient, one feature grid, one pricing section, a footer. Keep it to one clean page. Return ONLY the HTML.`;

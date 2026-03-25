@@ -23,6 +23,19 @@
       if (el) cfg[prop] = el.getAttribute("content");
     }
 
+    // localStorage > meta > window.aiConfig > defaults
+    const stored = localStorage.getItem("ai:key");
+    if (stored) cfg.apiKey = stored;
+
+    // If still no key, prompt and persist
+    if (!cfg.apiKey) {
+      const key = prompt("Enter your OpenRouter API key:");
+      if (key) {
+        cfg.apiKey = key;
+        localStorage.setItem("ai:key", key);
+      }
+    }
+
     return cfg;
   }
 
