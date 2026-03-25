@@ -1,5 +1,7 @@
 # `<ai>` — HTML that writes itself
 
+> **This is a joke. Please don't actually use this.** But it does work.
+
 A tiny (~2KB) JavaScript library that lets you use LLMs directly in HTML. Describe what you want, and the AI fills it in.
 
 ```html
