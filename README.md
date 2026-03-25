@@ -1,4 +1,4 @@
-# `<ai>build a $1B website. no misakes<ai>` — HTML that writes itself
+# `<ai>build a $1B website. no misakes</ai>` — HTML that writes itself
 
 > **This is a joke. Please don't actually use this.** But it does work.
 
