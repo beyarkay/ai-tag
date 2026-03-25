@@ -1,4 +1,4 @@
-# `<ai>` — HTML that writes itself
+# `<ai>build a $1B website. no misakes<ai>` — HTML that writes itself
 
 > **This is a joke. Please don't actually use this.** But it does work.
 
@@ -19,15 +19,14 @@ or
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta name="ai:key" content="your-openrouter-api-key">
-</head>
-<body>
+  <head>
+    <meta name="ai:key" content="your-openrouter-api-key" />
+  </head>
+  <body>
+    <ai>A hero section with a gradient background and a call to action</ai>
 
-  <ai>A hero section with a gradient background and a call to action</ai>
-
-  <script src="https://raw.githubusercontent.com/your-user/ai-tag/main/ai.js"></script>
-</body>
+    <script src="https://raw.githubusercontent.com/your-user/ai-tag/main/ai.js"></script>
+  </body>
 </html>
 ```
 
@@ -44,9 +43,9 @@ or
 ### Option 1: Meta tags
 
 ```html
-<meta name="ai:key" content="your-openrouter-key">
-<meta name="ai:model" content="anthropic/claude-sonnet-4">
-<meta name="ai:url" content="https://openrouter.ai/api/v1/chat/completions">
+<meta name="ai:key" content="your-openrouter-key" />
+<meta name="ai:model" content="anthropic/claude-sonnet-4" />
+<meta name="ai:url" content="https://openrouter.ai/api/v1/chat/completions" />
 ```
 
 ### Option 2: JavaScript (before loading ai.js)
@@ -55,25 +54,25 @@ or
 <script>
   window.aiConfig = {
     apiKey: "your-openrouter-key",
-    model: "openai/gpt-4o-mini",          // any OpenRouter model
+    model: "openai/gpt-4o-mini", // any OpenRouter model
     apiUrl: "https://openrouter.ai/api/v1/chat/completions",
     systemPrompt: "You are an HTML generator. Return only raw HTML.",
-    loadingClass: "ai-loading",            // added while loading
-    errorClass: "ai-error",               // added on error
-    doneClass: "ai-done",                 // added on success
+    loadingClass: "ai-loading", // added while loading
+    errorClass: "ai-error", // added on error
+    doneClass: "ai-done", // added on success
   };
 </script>
 ```
 
 ### Defaults
 
-| Setting | Default |
-|---------|---------|
-| `apiUrl` | `https://openrouter.ai/api/v1/chat/completions` |
-| `model` | `openai/gpt-4o-mini` |
-| `loadingClass` | `ai-loading` |
-| `errorClass` | `ai-error` |
-| `doneClass` | `ai-done` |
+| Setting        | Default                                         |
+| -------------- | ----------------------------------------------- |
+| `apiUrl`       | `https://openrouter.ai/api/v1/chat/completions` |
+| `model`        | `openai/gpt-4o-mini`                            |
+| `loadingClass` | `ai-loading`                                    |
+| `errorClass`   | `ai-error`                                      |
+| `doneClass`    | `ai-done`                                       |
 
 ## Usage
 
@@ -175,6 +174,7 @@ Open `tests/test.html` in a browser. All tests run client-side with a mocked fet
 ## Security Note
 
 Your API key is visible in the page source. This is fine for:
+
 - Local development
 - Prototyping
 - Internal tools
