@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ai.js — Tests</title>
+  <style>
+    body { font-family: monospace; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .pass { color: green; }
+    .fail { color: red; }
+    #results div { margin: 0.3rem 0; }
+    #summary { font-size: 1.2rem; margin-top: 1rem; padding: 1rem; border-radius: 4px; }
+    .summary-pass { background: #e6ffe6; }
+    .summary-fail { background: #ffe6e6; }
+  </style>
+</head>
+<body>
+  <h1>ai.js — Test Suite</h1>
+  <div id="results"></div>
+  <div id="summary"></div>
+
+  <script>
+    // ── Test framework ──────────────────────────────────────
+    const results = document.getElementById("results");
+    let passed = 0, failed = 0;
+
+    function assert(condition, name) {
+      const el = document.createElement("div");
+      if (condition) {
+        passed++;
+        el.className = "pass";
+        el.textContent = `✓ ${name}`;
+      } else {
+        failed++;
+        el.className = "fail";
+        el.textContent = `✗ ${name}`;
+      }
+      results.appendChild(el);
+    }
+
+    function showSummary() {
+      const summary = document.getElementById("summary");
+      summary.textContent = `${passed} passed, ${failed} failed, ${passed + failed} total`;
+      summary.className = failed === 0 ? "summary-pass" : "summary-fail";
+    }
+
+    // ── Mock fetch ──────────────────────────────────────────
+    const fetchCalls = [];
+    const originalFetch = window.fetch;
+
+    function mockFetch(response = "<p>mock response</p>") {
+      fetchCalls.length = 0;
+      window.fetch = async (url, opts) => {
+        fetchCalls.push({ url, opts });
+        return {
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: response } }],
+          }),
+        };
+      };
+    }
+
+    function mockFetchError(status = 500, body = "Internal Server Error") {
+      fetchCalls.length = 0;
+      window.fetch = async (url, opts) => {
+        fetchCalls.push({ url, opts });
+        return {
+          ok: false,
+          status,
+          text: async () => body,
+        };
+      };
+    }
+
+    function restoreFetch() {
+      window.fetch = originalFetch;
+    }
+
+    // ── Helpers ─────────────────────────────────────────────
+    function clearBody() {
+      // Remove everything except our test UI and scripts
+      document.querySelectorAll("ai, [ai]:not(#results):not(#summary):not(body):not(html):not(head)")
+        .forEach(el => el.remove());
+    }
+
+    function wait(ms = 50) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    // ── Load ai.js ──────────────────────────────────────────
+    window.aiConfig = { apiKey: "test-key-123" };
+  </script>
+  <script src="../ai.js"></script>
+  <script>
+    (async () => {
+      // ── Test 1: Config resolution ───────────────────────
+      const cfg = window.AI.getConfig();
+      assert(cfg.apiKey === "test-key-123", "Config: reads apiKey from window.aiConfig");
+      assert(cfg.apiUrl.includes("openrouter.ai"), "Config: default URL is OpenRouter");
+      assert(cfg.model === "openai/gpt-4o-mini", "Config: default model is openai/gpt-4o-mini");
+      assert(cfg.loadingClass === "ai-loading", "Config: default loadingClass");
+      assert(cfg.errorClass === "ai-error", "Config: default errorClass");
+      assert(cfg.doneClass === "ai-done", "Config: default doneClass");
+
+      // ── Test 2: <ai> tag processing ─────────────────────
+      mockFetch("<strong>hello world</strong>");
+      const aiEl = document.createElement("ai");
+      aiEl.textContent = "Say hello";
+      document.body.appendChild(aiEl);
+      window.AI.run();
+      await wait(100);
+
+      assert(aiEl.innerHTML === "<strong>hello world</strong>", "<ai> tag: innerHTML replaced with LLM response");
+      assert(aiEl.classList.contains("ai-done"), "<ai> tag: has ai-done class after completion");
+      assert(!aiEl.classList.contains("ai-loading"), "<ai> tag: loading class removed");
+      assert(aiEl.dataset.aiProcessed === "true", "<ai> tag: marked as processed");
+      assert(fetchCalls.length === 1, "<ai> tag: exactly one fetch call made");
+
+      const body1 = JSON.parse(fetchCalls[0].opts.body);
+      assert(body1.messages[1].content === "Say hello", "<ai> tag: prompt sent correctly");
+      assert(fetchCalls[0].opts.headers.Authorization === "Bearer test-key-123", "<ai> tag: API key sent in header");
+
+      aiEl.remove();
+
+      // ── Test 3: [ai] attribute processing ───────────────
+      mockFetch("<li>item 1</li><li>item 2</li>");
+      const divEl = document.createElement("div");
+      divEl.setAttribute("ai", "Make a list");
+      document.body.appendChild(divEl);
+      window.AI.run();
+      await wait(100);
+
+      assert(divEl.innerHTML === "<li>item 1</li><li>item 2</li>", "[ai] attr: innerHTML replaced");
+      assert(divEl.classList.contains("ai-done"), "[ai] attr: has ai-done class");
+      assert(divEl.dataset.aiProcessed === "true", "[ai] attr: marked as processed");
+
+      const body2 = JSON.parse(fetchCalls[fetchCalls.length - 1].opts.body);
+      assert(body2.messages[1].content === "Make a list", "[ai] attr: prompt sent correctly");
+
+      divEl.remove();
+
+      // ── Test 4: No duplicate processing ─────────────────
+      mockFetch("<p>duplicate test</p>");
+      const dupeEl = document.createElement("ai");
+      dupeEl.textContent = "Dupe test";
+      dupeEl.dataset.aiProcessed = "true";
+      document.body.appendChild(dupeEl);
+      const callsBefore = fetchCalls.length;
+      window.AI.run();
+      await wait(100);
+
+      assert(fetchCalls.length === callsBefore, "No duplicate: skips already-processed elements");
+      dupeEl.remove();
+
+      // ── Test 5: Error handling ──────────────────────────
+      mockFetchError(401, "Unauthorized");
+      const errEl = document.createElement("ai");
+      errEl.textContent = "This should fail";
+      document.body.appendChild(errEl);
+      // Suppress console.error for this test
+      const origError = console.error;
+      console.error = () => {};
+      window.AI.run();
+      await wait(100);
+      console.error = origError;
+
+      assert(errEl.classList.contains("ai-error"), "Error: has ai-error class");
+      assert(!errEl.classList.contains("ai-loading"), "Error: loading class removed");
+      assert(errEl.dataset.aiError.includes("401"), "Error: error message stored in data attribute");
+
+      errEl.remove();
+
+      // ── Test 6: Events fired ────────────────────────────
+      mockFetch("<p>event test</p>");
+      const evtEl = document.createElement("ai");
+      evtEl.textContent = "Event test";
+      document.body.appendChild(evtEl);
+
+      let doneEvent = null;
+      evtEl.addEventListener("ai:done", (e) => { doneEvent = e.detail; });
+      window.AI.run();
+      await wait(100);
+
+      assert(doneEvent !== null, "Events: ai:done event fired");
+      assert(doneEvent.prompt === "Event test", "Events: event detail includes prompt");
+      assert(doneEvent.html === "<p>event test</p>", "Events: event detail includes html");
+
+      evtEl.remove();
+
+      // ── Test 7: Error event fired ───────────────────────
+      mockFetchError(500, "Server Error");
+      const errEvtEl = document.createElement("ai");
+      errEvtEl.textContent = "Error event test";
+      document.body.appendChild(errEvtEl);
+
+      let errorEvent = null;
+      errEvtEl.addEventListener("ai:error", (e) => { errorEvent = e.detail; });
+      console.error = () => {};
+      window.AI.run();
+      await wait(100);
+      console.error = origError;
+
+      assert(errorEvent !== null, "Events: ai:error event fired");
+      assert(errorEvent.prompt === "Error event test", "Events: error event includes prompt");
+      assert(errorEvent.error instanceof Error, "Events: error event includes Error object");
+
+      errEvtEl.remove();
+
+      // ── Test 8: Empty prompt skipped ────────────────────
+      mockFetch("<p>should not be called</p>");
+      fetchCalls.length = 0;
+      const emptyEl = document.createElement("ai");
+      emptyEl.textContent = "   ";
+      document.body.appendChild(emptyEl);
+      window.AI.run();
+      await wait(100);
+
+      assert(fetchCalls.length === 0, "Empty prompt: no fetch call made for whitespace-only prompt");
+      emptyEl.remove();
+
+      // ── Test 9: Empty [ai] attribute skipped ────────────
+      mockFetch("<p>should not be called</p>");
+      fetchCalls.length = 0;
+      const emptyAttrEl = document.createElement("div");
+      emptyAttrEl.setAttribute("ai", "");
+      document.body.appendChild(emptyAttrEl);
+      window.AI.run();
+      await wait(100);
+
+      assert(fetchCalls.length === 0, "Empty attr: no fetch call for empty [ai] attribute");
+      emptyAttrEl.remove();
+
+      // ── Test 10: MutationObserver picks up new elements ─
+      mockFetch("<p>observed</p>");
+      fetchCalls.length = 0;
+      const obsEl = document.createElement("ai");
+      obsEl.textContent = "Observer test";
+      document.body.appendChild(obsEl);
+      await wait(200); // Give observer time to fire
+
+      assert(obsEl.innerHTML === "<p>observed</p>", "MutationObserver: processes dynamically added <ai> element");
+      obsEl.remove();
+
+      // ── Test 11: System prompt sent ─────────────────────
+      mockFetch("<p>sys test</p>");
+      const sysEl = document.createElement("ai");
+      sysEl.textContent = "System prompt test";
+      document.body.appendChild(sysEl);
+      window.AI.run();
+      await wait(100);
+
+      const sysBody = JSON.parse(fetchCalls[fetchCalls.length - 1].opts.body);
+      assert(sysBody.messages[0].role === "system", "System prompt: system message sent");
+      assert(sysBody.messages[0].content.includes("HTML generator"), "System prompt: default system prompt content");
+      sysEl.remove();
+
+      // ── Test 12: Custom config override ─────────────────
+      const oldConfig = Object.assign({}, window.aiConfig);
+      window.aiConfig.model = "anthropic/claude-haiku-4-5";
+      mockFetch("<p>custom model</p>");
+      const customEl = document.createElement("ai");
+      customEl.textContent = "Custom model test";
+      document.body.appendChild(customEl);
+      window.AI.run();
+      await wait(100);
+
+      const customBody = JSON.parse(fetchCalls[fetchCalls.length - 1].opts.body);
+      assert(customBody.model === "anthropic/claude-haiku-4-5", "Custom config: model override works");
+      window.aiConfig = oldConfig;
+      customEl.remove();
+
+      // ── Test 13: No API key error ───────────────────────
+      const savedKey = window.aiConfig.apiKey;
+      window.aiConfig.apiKey = null;
+      mockFetch("<p>should not reach</p>");
+      fetchCalls.length = 0;
+      const noKeyEl = document.createElement("ai");
+      noKeyEl.textContent = "No key test";
+      document.body.appendChild(noKeyEl);
+      console.error = () => {};
+      window.AI.run();
+      await wait(100);
+      console.error = origError;
+
+      assert(fetchCalls.length === 0, "No API key: no fetch call made without API key");
+      assert(noKeyEl.classList.contains("ai-error"), "No API key: element gets error class");
+      window.aiConfig.apiKey = savedKey;
+      noKeyEl.remove();
+
+      // ── Done ────────────────────────────────────────────
+      restoreFetch();
+      showSummary();
+    })();
+  </script>
+</body>
+</html>
