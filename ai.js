@@ -39,12 +39,14 @@
     return cfg;
   }
 
-  async function callLLM(prompt, cfg) {
+  async function callLLM(prompt, cfg, onChunk) {
     if (!cfg.apiKey) {
       throw new Error(
         "ai.js: No API key. Set window.aiConfig = { apiKey: '...' } or <meta name=\"ai:key\" content=\"...\">",
       );
     }
+
+    const streaming = cfg.stream && typeof onChunk === "function";
 
     const res = await fetch(cfg.apiUrl, {
       method: "POST",
@@ -54,6 +56,7 @@
       },
       body: JSON.stringify({
         model: cfg.model,
+        stream: streaming,
         messages: [
           { role: "system", content: cfg.systemPrompt },
           { role: "user", content: prompt },
@@ -66,15 +69,52 @@
       throw new Error(`ai.js: API error ${res.status}: ${body}`);
     }
 
-    const data = await res.json();
-    return data.choices[0].message.content;
+    if (!streaming) {
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    // SSE streaming
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = "";
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
+        const payload = trimmed.slice(6);
+        if (payload === "[DONE]") break;
+        try {
+          const json = JSON.parse(payload);
+          const delta = json.choices?.[0]?.delta?.content;
+          if (delta) {
+            full += delta;
+            onChunk(full);
+          }
+        } catch (_) {}
+      }
+    }
+
+    return full;
   }
 
   async function processElement(el, prompt, cfg) {
     el.classList.add(cfg.loadingClass);
 
     try {
-      const html = await callLLM(prompt, cfg);
+      const onChunk = cfg.stream
+        ? (partial) => { el.innerHTML = partial; }
+        : undefined;
+      const html = await callLLM(prompt, cfg, onChunk);
       el.innerHTML = html;
       el.classList.remove(cfg.loadingClass);
       el.classList.add(cfg.doneClass);
