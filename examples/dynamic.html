@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai.js — Dynamic Insertion</title>
+  <meta name="ai:key" content="YOUR_OPENROUTER_KEY">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .ai-loading { opacity: 0.5; min-height: 2rem; background: #f0f0f0; border-radius: 4px; }
+    .ai-done { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    button { padding: 0.5rem 1rem; font-size: 1rem; cursor: pointer; margin: 0.5rem 0.5rem 0.5rem 0; }
+    #output { margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; min-height: 3rem; }
+  </style>
+</head>
+<body>
+  <h1>ai.js — Dynamic Insertion</h1>
+  <p>Elements added to the DOM after page load are automatically picked up by the MutationObserver.</p>
+
+  <button id="btn-joke">Add a joke</button>
+  <button id="btn-quote">Add an inspirational quote</button>
+  <button id="btn-custom">Custom prompt</button>
+
+  <div id="output"></div>
+
+  <script src="../ai.js"></script>
+  <script>
+    const output = document.getElementById("output");
+
+    document.getElementById("btn-joke").addEventListener("click", () => {
+      const el = document.createElement("ai");
+      el.textContent = "Tell a short, clean programming joke. Format it nicely with HTML.";
+      output.appendChild(el);
+    });
+
+    document.getElementById("btn-quote").addEventListener("click", () => {
+      const el = document.createElement("blockquote");
+      el.setAttribute("ai", "An inspirational quote about building things, formatted as a blockquote with the author attributed");
+      output.appendChild(el);
+    });
+
+    document.getElementById("btn-custom").addEventListener("click", () => {
+      const prompt = window.prompt("Enter your AI prompt:");
+      if (!prompt) return;
+      const el = document.createElement("div");
+      el.setAttribute("ai", prompt);
+      output.appendChild(el);
+    });
+  </script>
+</body>
+</html>

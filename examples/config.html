@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai.js — Configuration</title>
+
+  <!-- Config via meta tags -->
+  <meta name="ai:key" content="YOUR_OPENROUTER_KEY">
+  <meta name="ai:model" content="anthropic/claude-sonnet-4">
+
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .ai-loading { opacity: 0.5; }
+    pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>ai.js — Configuration</h1>
+
+  <h2>Method 1: Meta tags</h2>
+  <pre><code>&lt;meta name="ai:key" content="your-key"&gt;
+&lt;meta name="ai:model" content="anthropic/claude-sonnet-4"&gt;
+&lt;meta name="ai:url" content="https://openrouter.ai/api/v1/chat/completions"&gt;</code></pre>
+
+  <h2>Method 2: JavaScript config (before loading ai.js)</h2>
+  <pre><code>&lt;script&gt;
+  window.aiConfig = {
+    apiKey: "your-key",
+    model: "anthropic/claude-sonnet-4",
+    systemPrompt: "Custom system prompt here"
+  };
+&lt;/script&gt;</code></pre>
+
+  <h2>Live demo (using meta tag config with Claude)</h2>
+  <ai>A haiku about HTML, wrapped in styled paragraph tags</ai>
+
+  <script src="../ai.js"></script>
+</body>
+</html>

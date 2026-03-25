@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai.js — Events</title>
+  <meta name="ai:key" content="YOUR_OPENROUTER_KEY">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .ai-loading { background: #fffbe6; padding: 1rem; border-radius: 4px; }
+    .ai-done { background: #e6ffe6; padding: 1rem; border-radius: 4px; }
+    .ai-error { background: #ffe6e6; padding: 1rem; border-radius: 4px; }
+    #log { font-family: monospace; font-size: 0.85rem; background: #1a1a1a; color: #0f0; padding: 1rem; border-radius: 4px; max-height: 300px; overflow-y: auto; }
+    #log div { margin: 0.2rem 0; }
+  </style>
+</head>
+<body>
+  <h1>ai.js — Event Listeners</h1>
+  <p>ai.js fires <code>ai:done</code> and <code>ai:error</code> events on each element. Listen for them to react to completions.</p>
+
+  <ai>A short paragraph about why events are useful in JavaScript</ai>
+
+  <h2>Event Log</h2>
+  <div id="log"></div>
+
+  <script src="../ai.js"></script>
+  <script>
+    const log = document.getElementById("log");
+
+    function addLog(msg) {
+      const line = document.createElement("div");
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    document.addEventListener("ai:done", (e) => {
+      addLog(`✅ Done — prompt: "${e.detail.prompt.slice(0, 50)}..." → ${e.detail.html.length} chars`);
+    });
+
+    document.addEventListener("ai:error", (e) => {
+      addLog(`❌ Error — ${e.detail.error.message}`);
+    });
+  </script>
+</body>
+</html>

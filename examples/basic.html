@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai.js — Basic Example</title>
+  <meta name="ai:key" content="YOUR_OPENROUTER_KEY">
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .ai-loading { opacity: 0.5; }
+    .ai-loading::after { content: " ⏳ Loading..."; font-style: italic; color: #888; }
+    .ai-error { border: 2px solid red; padding: 1rem; }
+    h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>ai.js — Basic Examples</h1>
+
+  <h2>1. Using the &lt;ai&gt; tag</h2>
+  <ai>A friendly welcome banner with a waving hand emoji and a short greeting</ai>
+
+  <h2>2. Using the [ai] attribute</h2>
+  <div ai="An unordered list of 3 fun facts about the ocean"></div>
+
+  <h2>3. Generating a table</h2>
+  <ai>A simple HTML table comparing 3 programming languages (Python, Rust, JavaScript) across columns: Name, Typing, Speed, Use Case</ai>
+
+  <h2>4. Generating a form</h2>
+  <section ai="A simple contact form with name, email, and message fields, plus a submit button. Style it inline with a light gray background and padding."></section>
+
+  <script src="../ai.js"></script>
+</body>
+</html>
