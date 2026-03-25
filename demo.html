@@ -1,15 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="ai:model" content="anthropic/claude-sonnet-4">
-  <script>
-    window.aiConfig = { stream: true };
-  </script>
-</head>
-<body>
-  <ai>build a $1B b2b saas landing page. make no mistakes. use inline styles. go all out — hero section, gradient, testimonials, pricing tiers, the works. make it look like someone mass-produced it during Y Combinator demo day</ai>
-  <script src="ai.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="ai:model" content="anthropic/claude-sonnet-4" />
+    <script>
+      window.aiConfig = { stream: true };
+    </script>
+  </head>
+  <body>
+    <ai
+      >build a webpage explaining what the &lt;ai&gt; HTML element does - it
+      takes whatever's in the ai element as a prompt and streams back the HTML
+      AI response.<br /><br /><br />Add some examples, make it tongue in cheek,
+      nobody would ever actually use this. Make the HTML for mobile, use inline
+      styles. The input for &lt;ai&gt; can just be natural language and the
+      output is HTML. You can get started by using &lt;script
+      src="https://raw.githubusercontent.com/beyarkay/ai-tag/main/ai.js"&gt;&lt;/script&gt;
+      and the code is public at https://github.com/beyarkay/ai-tag e.g. the
+      minimal get started HTML is: &lt;!DOCTYPE html&gt; &lt;html&gt;
+      &lt;head&gt; &lt;meta name="ai:key" content="your-openrouter-api-key"
+      /&gt; &lt;/head&gt; &lt;body&gt; &lt;ai&gt;A hero section with a gradient
+      background and a call to action&lt;/ai&gt; &lt;script
+      src="https://raw.githubusercontent.com/your-user/ai-tag/main/ai.js"&gt;&lt;/script&gt;
+      &lt;/body&gt; &lt;/html&gt;
+    </ai>
+    <script src="ai.js"></script>
+  </body>
 </html>
