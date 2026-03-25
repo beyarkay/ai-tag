@@ -124,7 +124,7 @@
       if (shouldRun) run();
     });
 
-    observer.observe(document.body, { childTree: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
     return observer;
   }
 
